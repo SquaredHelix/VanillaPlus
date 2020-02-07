@@ -1,7 +1,7 @@
 name: ${project.name}
 author: Spoch
 version: ${project.version}
-main: me.kristoffer.vanillacore.Main
+main: me.kristoffer.vanillaplus.VanillaPlus
 author: Spoch
 api-version: 1.13
 commands:
