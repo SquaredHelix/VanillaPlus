@@ -4,3 +4,5 @@
 [![](https://img.shields.io/github/issues/SquaredHelix/VanillaPlus)](https://github.com/SquaredHelix/VanillaPlus/issues)
 -----
 VanillaPlus is an open source Spigot plugin for improving Minecraft without adding game-changing items
+
+Download [here](https://github.com/SquaredHelix/VanillaPlus/releases)
