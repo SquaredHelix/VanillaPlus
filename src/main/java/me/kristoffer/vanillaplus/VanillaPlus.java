@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.kristoffer.vanillaplus.modules.AnvilColor;
 import me.kristoffer.vanillaplus.modules.Module;
 import me.kristoffer.vanillaplus.modules.Nametag;
 import me.kristoffer.vanillaplus.modules.NoExplosions;
@@ -16,7 +17,7 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 	private List<Module> modules;
 
 	public void onEnable() {
-		modules = Arrays.asList(new Nametag(this), new NoExplosions(this), new Sleep(this));
+		modules = Arrays.asList(new AnvilColor(this), new Nametag(this), new NoExplosions(this), new Sleep(this));
 	}
 	
 	public List<Module> getModules() {
