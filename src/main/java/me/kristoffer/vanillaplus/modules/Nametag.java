@@ -138,10 +138,10 @@ public class Nametag extends Module implements CommandExecutor {
 
 	private void updateName(Player player, AsyncPlayerChatEvent chatEvent) {
 		Scoreboard sb = Bukkit.getServer().getScoreboardManager().getMainScoreboard();
-		Team team = sb.getEntryTeam(player.getName());
-		if (!(sb.getEntryTeam(player.getName()) != null)) {
-			return;
+		if (sb.getEntryTeam(player.getName()) == null) {
+			sb.getTeam("cf").addEntry(player.getName());
 		}
+		Team team = sb.getEntryTeam(player.getName());
 		player.setPlayerListName(team.getPrefix() + player.getName());
 		if (team.getName().equals("rainbow")) {
 			if (chatEvent != null) {
@@ -158,7 +158,8 @@ public class Nametag extends Module implements CommandExecutor {
 						team.getColor() + player.getDisplayName() + ChatColor.RESET + ": " + chatEvent.getMessage());
 			}
 			if (afkPlayers.contains(player.getName())) {
-				player.setPlayerListName(ChatColor.YELLOW + "[AFK] " + team.getPrefix() + player.getName());
+				player.setPlayerListName(
+						ChatColor.YELLOW + "[AFK] " + team.getColor() + team.getPrefix() + player.getName());
 			}
 		}
 	}
