@@ -8,3 +8,7 @@
 VanillaPlus is an open source Spigot plugin for improving Minecraft without adding game-changing items
 
 Download [here](https://github.com/SquaredHelix/VanillaPlus/releases)
+
+Planned features:
+* Configuration for each module
+* API
