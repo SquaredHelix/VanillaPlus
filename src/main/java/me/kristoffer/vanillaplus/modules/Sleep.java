@@ -59,7 +59,9 @@ public class Sleep extends Module {
 					@Override
 					public void run() {
 						event.getPlayer().getWorld().setFullTime(24000);
-						getMainworld().setWeatherDuration(1);
+						if (getMainworld().isThundering()) {
+							getMainworld().setWeatherDuration(1);
+						}
 						sleeping.clear();
 						sleepTask = null;
 					}
