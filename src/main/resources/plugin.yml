@@ -2,7 +2,6 @@ name: ${project.name}
 author: SquaredHelix
 version: ${project.version}
 main: me.kristoffer.vanillaplus.VanillaPlus
-author: SquaredHelix
 api-version: 1.15
 commands:
   namecolor:
