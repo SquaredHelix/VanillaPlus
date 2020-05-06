@@ -1,8 +1,8 @@
 name: ${project.name}
-author: Spoch
+author: SquaredHelix
 version: ${project.version}
 main: me.kristoffer.vanillaplus.VanillaPlus
-author: Spoch
+author: SquaredHelix
 api-version: 1.15
 commands:
   namecolor:
