@@ -1,5 +1,6 @@
 package me.kristoffer.vanillaplus.modules;
 
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
@@ -14,6 +15,9 @@ public class NoExplosions extends Module {
 	
 	@EventHandler
 	public void onExplode(EntityExplodeEvent event) {
+		if (event.getEntityType().equals(EntityType.PRIMED_TNT)) {
+			return;
+		}
 		event.setYield(0.0F);
 		event.setCancelled(true);
 	}

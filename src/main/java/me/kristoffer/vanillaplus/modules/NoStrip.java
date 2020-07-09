@@ -9,13 +9,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import me.kristoffer.vanillaplus.VanillaPlus;
 
@@ -75,11 +73,9 @@ public class NoStrip extends Module {
 		if (axeCount == 0 || axeCount > 1)
 			return;
 		int logCount = 0;
-		Material logMaterial = null;
 		for (Material material : logMaterials) {
 			if (inventory.contains(material)) {
 				logCount++;
-				logMaterial = material;
 			}
 		}
 		if (logCount == 0 || logCount > 1)
