@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Rotation;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.block.Container;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -24,6 +27,7 @@ public class ItemFrameFix extends Module {
 
 	// Avoid double-opening of the chest, caused by a bug in the event
 	public ArrayList<Container> clickedList = new ArrayList<Container>();
+	public ArrayList<Player> openInventories = new ArrayList<Player>();
 
 	@EventHandler
 	public void onPlaterInteract(PlayerInteractAtEntityEvent event) {
@@ -46,7 +50,12 @@ public class ItemFrameFix extends Module {
 					return;
 				}
 				clickedList.add(container);
-				event.getPlayer().openInventory(container.getInventory());
+				if (container instanceof Chest) {
+					openInventories.add(event.getPlayer());
+					event.getPlayer().openInventory(container.getInventory());
+				} else {
+					event.getPlayer().openInventory(container.getInventory());
+				}
 				Rotation rotation = itemFrame.getRotation();
 				new BukkitRunnable() {
 
@@ -61,4 +70,26 @@ public class ItemFrameFix extends Module {
 		}
 	}
 
+	@EventHandler
+	public void onInventoryCloseEvent(InventoryCloseEvent event) {
+		if (!openInventories.contains(event.getPlayer())) {
+			return;
+		}
+		if (event.getInventory().getHolder() instanceof DoubleChest) {
+			DoubleChest doubleChest = (DoubleChest) event.getInventory().getHolder();
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					Chest leftChest = (Chest) doubleChest.getLeftSide();
+					Chest rightChest = (Chest) doubleChest.getRightSide();
+					leftChest.open();
+					rightChest.open();
+					leftChest.close();
+					rightChest.close();
+					openInventories.remove(event.getPlayer());
+				}
+			}.runTaskLater(plugin, 1L);
+		}
+
+	}
 }
