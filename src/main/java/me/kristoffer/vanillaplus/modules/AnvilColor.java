@@ -28,6 +28,9 @@ public class AnvilColor extends Module {
 		}
 
 		ItemStack outputItem = event.getResult();
+		if (!outputItem.hasItemMeta()) {
+			return;
+		}
 		ItemMeta outputItemMeta = outputItem.getItemMeta();
 		if (outputItemMeta != null) {
 			outputItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', outputItemMeta.getDisplayName()));
