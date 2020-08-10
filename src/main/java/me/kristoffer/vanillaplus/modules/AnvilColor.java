@@ -53,9 +53,11 @@ public class AnvilColor extends Module {
 						ItemStack cursorItem = event.getCursor();
 						if (cursorItem != null) {
 							ItemMeta cursorItemMeta = cursorItem.getItemMeta();
+							if (!(cursorItemMeta == null)) {
 							if (cursorItemMeta.hasDisplayName()) {
 								cursorItemMeta.setDisplayName(
 										ChatColor.translateAlternateColorCodes('&', cursorItemMeta.getDisplayName()));
+							}
 							}
 							cursorItem.setItemMeta(cursorItemMeta);
 							event.getWhoClicked().setItemOnCursor(cursorItem);
