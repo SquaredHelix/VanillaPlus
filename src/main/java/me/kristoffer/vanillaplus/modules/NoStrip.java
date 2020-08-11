@@ -112,6 +112,10 @@ public class NoStrip extends Module {
 			return Material.STRIPPED_ACACIA_LOG;
 		case DARK_OAK_LOG:
 			return Material.STRIPPED_DARK_OAK_LOG;
+		case CRIMSON_STEM:
+			return Material.STRIPPED_CRIMSON_STEM;
+		case WARPED_STEM:
+			return Material.STRIPPED_WARPED_STEM;
 		default:
 			break;
 		}
