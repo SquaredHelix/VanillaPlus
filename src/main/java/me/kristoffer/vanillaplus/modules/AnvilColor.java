@@ -28,6 +28,9 @@ public class AnvilColor extends Module {
 		}
 
 		ItemStack outputItem = event.getResult();
+		if (outputItem == null) {
+			return;
+		}
 		if (!outputItem.hasItemMeta()) {
 			return;
 		}
