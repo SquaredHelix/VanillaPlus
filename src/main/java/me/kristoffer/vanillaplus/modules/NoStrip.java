@@ -38,7 +38,7 @@ public class NoStrip extends Module {
 	private List<Material> logMaterials = Arrays.asList(Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG,
 			Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG);
 	private List<Material> axeMaterials = Arrays.asList(Material.IRON_AXE, Material.WOODEN_AXE, Material.STONE_AXE,
-			Material.DIAMOND_AXE, Material.GOLDEN_AXE);
+			Material.DIAMOND_AXE, Material.GOLDEN_AXE, Material.NETHERITE_AXE);
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
