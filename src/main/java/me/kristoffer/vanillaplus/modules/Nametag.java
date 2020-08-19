@@ -35,7 +35,7 @@ public class Nametag extends Module implements CommandExecutor {
 	}
 
 	private HashMap<Material, String> allowedDye = new HashMap<Material, String>();
-	private final List<String> RAINBOW = Arrays.asList("§9", "§a", "§b", "§c", "§d", "§e");
+	private final List<String> RAINBOW = Arrays.asList("&9", "&a", "&b", "&c", "&d", "&e");
 	private List<String> afkPlayers = new ArrayList<String>();
 
 	private void namecolorSetup() {
@@ -171,7 +171,7 @@ public class Nametag extends Module implements CommandExecutor {
 			String letter = Character.toString(l);
 			String t1 = fancyText;
 			if (!letter.equalsIgnoreCase(" ")) {
-				fancyText = t1 + RAINBOW.get(spot) + letter;
+				fancyText = t1 + ChatColor.translateAlternateColorCodes('&', RAINBOW.get(spot)) + letter;
 				if (spot == RAINBOW.size() - 1) {
 					spot = 0;
 				} else {
