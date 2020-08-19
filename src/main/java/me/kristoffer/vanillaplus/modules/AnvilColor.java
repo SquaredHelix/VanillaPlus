@@ -23,7 +23,7 @@ public class AnvilColor extends Module {
 		ItemStack inputItem = event.getInventory().getItem(0);
 		if (inputItem != null) {
 			ItemMeta inputItemMeta = inputItem.getItemMeta();
-			inputItemMeta.setDisplayName(inputItemMeta.getDisplayName().replace('§', '&'));
+			inputItemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', inputItemMeta.getDisplayName()));
 			inputItem.setItemMeta(inputItemMeta);
 		}
 
