@@ -1,0 +1,14 @@
+<settings>
+	<profiles>
+		<profile>
+			<id>mainProfile</id>
+			<properties>
+				<vanillaplus.outputDir>YOUROUTPUTPATH</vanillaplus.outputDir>
+			</properties>
+		</profile>
+	</profiles>
+
+	<activeProfiles>
+		<activeProfile>mainProfile</activeProfile>
+	</activeProfiles>
+</settings>
