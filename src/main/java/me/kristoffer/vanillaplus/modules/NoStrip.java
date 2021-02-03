@@ -1,5 +1,6 @@
 package me.kristoffer.vanillaplus.modules;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,11 +14,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
 import me.kristoffer.vanillaplus.VanillaPlus;
 
 public class NoStrip extends Module {
+
+	private List<Recipe> recipes = new ArrayList<Recipe>();
 
 	public NoStrip(VanillaPlus plugin) {
 		super(plugin);
@@ -30,13 +34,15 @@ public class NoStrip extends Module {
 				ShapelessRecipe recipe = new ShapelessRecipe(key, new ItemStack(translateLog(material)));
 				recipe.addIngredient(material);
 				recipe.addIngredient(material2);
+				recipes.add(recipe);
 				Bukkit.addRecipe(recipe);
 			}
 		}
 	}
 
 	private List<Material> logMaterials = Arrays.asList(Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG,
-			Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG, Material.CRIMSON_STEM, Material.WARPED_STEM);
+			Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG, Material.CRIMSON_STEM,
+			Material.WARPED_STEM);
 	private List<Material> axeMaterials = Arrays.asList(Material.IRON_AXE, Material.WOODEN_AXE, Material.STONE_AXE,
 			Material.DIAMOND_AXE, Material.GOLDEN_AXE, Material.NETHERITE_AXE);
 
@@ -93,8 +99,13 @@ public class NoStrip extends Module {
 		}
 		if (logCount == 0 || logCount > 64)
 			return;
+		ItemStack result = inventory.getResult();
+		result.setAmount(logAmount);
+		inventory.setResult(result);
 		if (event.getRawSlot() == 0) {
+			inventory.clear();
 			event.getViewers().get(0).getInventory().addItem(axeItemstack);
+			event.getViewers().get(0).getInventory().addItem(result);
 		}
 	}
 
