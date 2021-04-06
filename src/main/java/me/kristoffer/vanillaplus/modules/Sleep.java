@@ -24,7 +24,7 @@ public class Sleep extends Module {
 	public int nightstop = 23458;
 	
 	public Sleep(VanillaPlus plugin) {
-		super(plugin);
+		super("Sleep", plugin);
 		this.plugin = plugin;
 		registerListeners();
 	}

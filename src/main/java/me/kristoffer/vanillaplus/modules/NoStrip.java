@@ -24,7 +24,7 @@ public class NoStrip extends Module {
 	private List<Recipe> recipes = new ArrayList<Recipe>();
 
 	public NoStrip(VanillaPlus plugin) {
-		super(plugin);
+		super("NoStrip", plugin);
 		registerListeners();
 
 		for (Material material : logMaterials) {

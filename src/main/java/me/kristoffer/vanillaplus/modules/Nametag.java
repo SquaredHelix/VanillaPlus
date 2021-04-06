@@ -23,7 +23,7 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class Nametag extends Module implements CommandExecutor {
 
 	public Nametag(VanillaPlus plugin) {
-		super(plugin);
+		super("Nametag", plugin);
 		registerListeners();
 		registerCommand("afk");
 		registerCommand("namecolor");

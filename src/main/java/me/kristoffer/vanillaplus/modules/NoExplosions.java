@@ -9,7 +9,7 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class NoExplosions extends Module {
 
 	public NoExplosions(VanillaPlus plugin) {
-		super(plugin);
+		super("NoExplosions", plugin);
 		registerListeners();
 	}
 	

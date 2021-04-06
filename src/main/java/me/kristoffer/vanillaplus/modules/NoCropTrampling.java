@@ -10,7 +10,7 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class NoCropTrampling extends Module {
 
 	public NoCropTrampling(VanillaPlus plugin) {
-		super(plugin);
+		super("NoCropTrampling", plugin);
 		registerListeners();
 	}
 	

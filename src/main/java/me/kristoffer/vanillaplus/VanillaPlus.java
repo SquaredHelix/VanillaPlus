@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.kristoffer.vanillaplus.modules.AnvilColor;
+import me.kristoffer.vanillaplus.modules.Core;
 import me.kristoffer.vanillaplus.modules.ItemFrameFix;
 import me.kristoffer.vanillaplus.modules.Module;
 import me.kristoffer.vanillaplus.modules.Nametag;
@@ -20,8 +21,14 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 	private List<Module> modules;
 
 	public void onEnable() {
-		modules = Arrays.asList(new AnvilColor(this), new ItemFrameFix(this), new Nametag(this), new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this),
+		modules = Arrays.asList(new Core(this), new AnvilColor(this), new ItemFrameFix(this), new Nametag(this), new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this),
 				new Sleep(this));
+	}
+	
+	public void onDisable() {
+		for (Module module : modules) {
+			module.onDisable();
+		}
 	}
 
 	public List<Module> getModules() {

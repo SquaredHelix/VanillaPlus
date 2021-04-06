@@ -21,7 +21,7 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class ItemFrameFix extends Module {
 
 	public ItemFrameFix(VanillaPlus plugin) {
-		super(plugin);
+		super("ItemFrameFix", plugin);
 		registerListeners();
 	}
 

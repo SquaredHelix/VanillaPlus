@@ -1,0 +1,4 @@
+ - Dragon dropping elytra (module)
+ - Ability for modules to work with config files
+ - Beacon prevents mob spawns (module)
+ - Ability to disable modules
