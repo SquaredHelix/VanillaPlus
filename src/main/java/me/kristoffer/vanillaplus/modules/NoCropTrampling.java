@@ -11,6 +11,9 @@ public class NoCropTrampling extends Module {
 
 	public NoCropTrampling(VanillaPlus plugin) {
 		super("NoCropTrampling", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
 	}
 	

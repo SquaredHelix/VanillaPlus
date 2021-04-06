@@ -11,11 +11,11 @@ public class NoExplosions extends Module {
 	public NoExplosions(VanillaPlus plugin) {
 		super("NoExplosions", plugin);
 	}
-	
+
 	public void onEnable() {
 		registerListeners();
 	}
-	
+
 	@EventHandler
 	public void onExplode(EntityExplodeEvent event) {
 		if (event.getEntityType().equals(EntityType.PRIMED_TNT)) {
@@ -24,5 +24,5 @@ public class NoExplosions extends Module {
 		event.setYield(0.0F);
 		event.setCancelled(true);
 	}
-	
+
 }
