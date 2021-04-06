@@ -10,46 +10,50 @@ import org.bukkit.event.Listener;
 import me.kristoffer.vanillaplus.VanillaPlus;
 
 public class Module implements Listener {
-	
+
 	public VanillaPlus plugin;
 	public String name;
 	public File dataFolder;
-	
+
 	public Module(String name, VanillaPlus plugin) {
 		this.plugin = plugin;
 		this.name = name;
 		setDataFolder(name);
 	}
-	
+
 	protected void setDataFolder(String path) {
 		dataFolder = new File(plugin.getDataFolder().getAbsolutePath() + path);
 		dataFolder.mkdirs();
 	}
-	
+
 	public File getFile(String path) {
 		return new File(dataFolder.getAbsolutePath() + path);
 	}
-	
+
 	public YamlConfiguration getConfig(String name) {
 		return YamlConfiguration.loadConfiguration(getFile(name));
 	}
-	
+
 	public void registerListeners() {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
-	
+
 	public void deregisterListeners() {
 		HandlerList.unregisterAll(this);
 	}
-	
+
 	public void registerCommand(String label) {
 		if (this instanceof CommandExecutor) {
 			plugin.getCommand(label).setExecutor((CommandExecutor) this);
 		}
 	}
-	
-	public void onDisable() {
-		
+
+	public void onEnable() {
+
 	}
-	
+
+	public void onDisable() {
+
+	}
+
 }

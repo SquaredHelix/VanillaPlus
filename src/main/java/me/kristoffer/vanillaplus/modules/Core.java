@@ -1,6 +1,7 @@
 package me.kristoffer.vanillaplus.modules;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -14,10 +15,22 @@ public class Core extends Module {
 		super("Core", plugin);
 		setDataFolder(""); // Set data folder to back to root
 		settings = getConfig("settings.yml");
+		ArrayList<Module> toRemove = new ArrayList<Module>();
+		for (Module module : plugin.getStandardModules()) {
+			if (!settings.contains("moduleToggles." + name)) {
+				return;
+			}
+			if (!settings.getBoolean("moduleToggles." + name)) {
+				toRemove.add(module);
+			}
+		}
+		for (Module module : toRemove) {
+			plugin.getStandardModules().remove(module);
+		}
 	}
 
 	public void afterModuleHook() {
-		for (Module module : plugin.getModules()) {
+		for (Module module : plugin.getLoadedModules()) {
 			if (module instanceof Core) {
 				return;
 			}

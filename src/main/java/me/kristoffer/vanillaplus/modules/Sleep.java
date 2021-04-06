@@ -26,6 +26,9 @@ public class Sleep extends Module {
 	public Sleep(VanillaPlus plugin) {
 		super("Sleep", plugin);
 		this.plugin = plugin;
+	}
+	
+	public void onEnable() {
 		registerListeners();
 	}
 

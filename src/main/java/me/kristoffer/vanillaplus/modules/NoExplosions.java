@@ -10,6 +10,9 @@ public class NoExplosions extends Module {
 
 	public NoExplosions(VanillaPlus plugin) {
 		super("NoExplosions", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
 	}
 	

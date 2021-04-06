@@ -15,6 +15,9 @@ public class AnvilColor extends Module {
 
 	public AnvilColor(VanillaPlus plugin) {
 		super("AnvilColor", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
 	}
 

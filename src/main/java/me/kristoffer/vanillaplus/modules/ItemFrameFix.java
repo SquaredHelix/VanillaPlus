@@ -22,9 +22,12 @@ public class ItemFrameFix extends Module {
 
 	public ItemFrameFix(VanillaPlus plugin) {
 		super("ItemFrameFix", plugin);
-		registerListeners();
 	}
 
+	public void onEnable() {
+		registerListeners();
+	}
+	
 	// Avoid double-opening of the chest, caused by a bug in the event
 	public ArrayList<Container> clickedList = new ArrayList<Container>();
 	public ArrayList<Player> openInventories = new ArrayList<Player>();

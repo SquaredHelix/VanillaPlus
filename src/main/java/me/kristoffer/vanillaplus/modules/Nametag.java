@@ -24,10 +24,13 @@ public class Nametag extends Module implements CommandExecutor {
 
 	public Nametag(VanillaPlus plugin) {
 		super("Nametag", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
 		registerCommand("afk");
 		registerCommand("namecolor");
-
+		
 		namecolorSetup();
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			updateName(player, null);

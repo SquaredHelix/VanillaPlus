@@ -25,8 +25,11 @@ public class NoStrip extends Module {
 
 	public NoStrip(VanillaPlus plugin) {
 		super("NoStrip", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
-
+		
 		for (Material material : logMaterials) {
 			for (Material material2 : axeMaterials) {
 				NamespacedKey key = new NamespacedKey(plugin, material.getKey().toString().replace("minecraft:", "")

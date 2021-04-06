@@ -18,6 +18,9 @@ public class DragonElytra extends Module {
 	
 	public DragonElytra(VanillaPlus plugin) {
 		super("DragonElytra", plugin);
+	}
+	
+	public void onEnable() {
 		registerListeners();
 	}
 

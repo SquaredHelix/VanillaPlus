@@ -19,17 +19,19 @@ import me.kristoffer.vanillaplus.modules.Sleep;
 public class VanillaPlus extends JavaPlugin implements Listener {
 
 	private Core core;
-	private List<Module> modules;
+	private List<Module> standardModules;
+	private List<Module> loadedModules;
 	
 	public void onEnable() {
 		core = new Core(this);
-		modules = Arrays.asList(new Core(this), new AnvilColor(this), new ItemFrameFix(this), new Nametag(this),
+		standardModules = Arrays.asList(new Core(this), new AnvilColor(this), new ItemFrameFix(this), new Nametag(this),
 				new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this), new Sleep(this));
 		core.afterModuleHook();
+		loadedModules = standardModules;
 	}
 
 	public void onDisable() {
-		for (Module module : modules) {
+		for (Module module : standardModules) {
 			module.onDisable();
 		}
 	}
@@ -38,8 +40,12 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 		return core;
 	}
 	
-	public List<Module> getModules() {
-		return modules;
+	public List<Module> getStandardModules() {
+		return standardModules;
+	}
+	
+	public List<Module> getLoadedModules() {
+		return loadedModules;
 	}
 
 }
