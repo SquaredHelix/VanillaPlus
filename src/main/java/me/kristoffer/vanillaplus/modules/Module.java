@@ -12,12 +12,26 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class Module implements Listener {
 	
 	public VanillaPlus plugin;
-	public YamlConfiguration config;
+	public String name;
+	public File dataFolder;
 	
 	public Module(String name, VanillaPlus plugin) {
 		this.plugin = plugin;
-		File configFile = new File(plugin.getDataFolder(), name + ".config");
-		this.config = YamlConfiguration.loadConfiguration(configFile);
+		this.name = name;
+		setDataFolder(name);
+	}
+	
+	protected void setDataFolder(String path) {
+		dataFolder = new File(plugin.getDataFolder().getAbsolutePath() + path);
+		dataFolder.mkdirs();
+	}
+	
+	public File getFile(String path) {
+		return new File(dataFolder.getAbsolutePath() + path);
+	}
+	
+	public YamlConfiguration getConfig(String name) {
+		return YamlConfiguration.loadConfiguration(getFile(name));
 	}
 	
 	public void registerListeners() {
