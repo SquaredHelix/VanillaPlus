@@ -22,12 +22,12 @@ public class Module implements Listener {
 	}
 
 	protected void setDataFolder(String path) {
-		dataFolder = new File(plugin.getDataFolder().getAbsolutePath() + path);
+		dataFolder = new File(plugin.getDataFolder().getAbsolutePath() + "/" + path);
 		dataFolder.mkdirs();
 	}
 
 	public File getFile(String path) {
-		return new File(dataFolder.getAbsolutePath() + path);
+		return new File(dataFolder.getAbsolutePath() + "/" + path);
 	}
 
 	public YamlConfiguration getConfig(String name) {

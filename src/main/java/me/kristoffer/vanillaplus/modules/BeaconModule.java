@@ -1,30 +1,35 @@
 package me.kristoffer.vanillaplus.modules;
 
-it.Material;
-
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import me.kristoffer.vanillaplus.VanillaPlus;
-import me.kristoffer.vanillaplus.event.BeaconUpdateEvent;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class BeaconModule extends Module {
 
 	private final Material protectorMaterial = Material.NETHERITE_BLOCK;
-	private final List<Material> beaconStructureMaterials = Arrays.asList(Material.IRON_BLOCK, Material.GOLD_BLOCK,
-			Material.DIAMOND_BLOCK, Material.EMERALD_BLOCK, Material.NETHERITE_BLOCK);
-	private final int tiers = 4;
+	/*
+	 * private final List<Material> beaconStructureMaterials =
+	 * Arrays.asList(Material.IRON_BLOCK, Material.GOLD_BLOCK,
+	 * Material.DIAMOND_BLOCK, Material.EMERALD_BLOCK, Material.NETHERITE_BLOCK);
+	 * private final int tiers = 4;
+	 */
 	private YamlConfiguration data;
+	private ArrayList<Block> watchedBeacons = new ArrayList<Block>();
 
 	public BeaconModule(VanillaPlus plugin) {
 		super("BeaconModule", plugin);
@@ -33,76 +38,106 @@ public class BeaconModule extends Module {
 	public void onEnable() {
 		registerListeners();
 		data = getConfig("data.dat");
-	}
+		for (String key : data.getStringList("beacons")) {
+			Block beacon = deserializeLocation(key).getBlock();
+			watchedBeacons.add(beacon);
+		}
+		new BukkitRunnable() {
 
-	@EventHandler
-	public void onBlockPlacement(BlockPlaceEvent event) {
-		if (event.getBlock().getType() == protectorMaterial) {
-			Location location = event.getBlock().getLocation();
-			// Loop all 4 tiers above placed block
-			boolean validBeacon = false;
-			for (int i = 0; i <= tiers; i++) {
-				Block block = location.getWorld().getBlockAt(location.add(0, 1, 0));
-				validBeacon = checkNetheriteValidity(block);
-				if (validBeacon)
-					break;
+			@Override
+			public void run() {
+				beaconUpdaterTick();
 			}
-			// Store (valid) beacon to file
+
+		}.runTaskTimer(plugin, 10L, 10L);
+	}
+
+	public void beaconUpdaterTick() {
+		for (Block block : watchedBeacons) {
+			Beacon beacon = (Beacon) block.getState();
+			System.out.println(beacon.getTier() + " | " + validityCheck(beacon));
+			if (beacon.getTier() > 0 && validityCheck(beacon)) {
+				beacon.getEntitiesInRange().forEach(entity -> {
+					Player player = (Player) entity;
+					player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("⚔"));
+				});
+			}
 		}
 	}
 
 	@EventHandler
-	public void onBeaconUpdate(BeaconUpdateEvent event) {
-		Beacon beacon = event.getBeacon();
-		if (beacon.getTier() == 0) {
-			updateStoredBeacon(beacon);
+	public void onBlockPlace(BlockPlaceEvent event) {
+		if (!(event.getBlock().getType() == Material.BEACON)) {
+			return;
+		}
+		Beacon beacon = (Beacon) event.getBlock().getState();
+		updateStoredBeacon(beacon, true);
+		watchedBeacons.add(beacon.getBlock());
+	}
+
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent event) {
+		if (!(event.getBlock().getType() == Material.BEACON)) {
+			return;
+		}
+		Beacon beacon = (Beacon) event.getBlock().getState();
+		updateStoredBeacon(beacon, false);
+		watchedBeacons.remove(beacon.getBlock());
+	}
+
+	public void updateStoredBeacon(Beacon beacon, boolean add) {
+		Location loc = beacon.getLocation();
+		String serializedLocation = serializeLocation(loc);
+		List<String> beaconLocations;
+		if (data.contains("beacons")) {
+			beaconLocations = data.getStringList("beacons");
+		} else {
+			beaconLocations = new ArrayList<String>();
+		}
+		if (beaconLocations.contains(serializedLocation)) {
+			if (!add) {
+				beaconLocations.remove(serializedLocation);
+			}
+		} else {
+			if (add) {
+				beaconLocations.add(serializedLocation);
+			}
+		}
+		data.set("beacons", beaconLocations);
+		try {
+			data.save(getFile("data.dat"));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public void updateStoredBeacon(Beacon beacon) {
-		Location loc = beacon.getLocation();
-		String serializedLocation = loc.getBlockX() + "@" + loc.getBlockY() + "@" + loc.getBlockZ();
-		data.set(serializedLocation + ".valid", validityCheck(beacon));
-	}
-
+	// Method to check if the beacon is valid for monster protection
 	public boolean validityCheck(Beacon beacon) {
 		Location loc = beacon.getLocation();
 		int tier = beacon.getTier();
 		if (tier == 0) {
 			return false;
 		}
-	}
-
-	public Beacon getBeaconFromStructureBlock(Block block) {
-		if (!beaconStructureMaterials.contains(block.getType())) {
-			return null;
-		}
-		int tiersLeft = 5; // Include 5th tier just in case there is overlap between protector material and
-							// the structure materials
-		Block upperBlock = block;
-		while (tiersLeft > 0) {
-			upperBlock = upperBlock.getRelative(BlockFace.UP);
-			Material upperType = upperBlock.getType();
-			if (!(beaconStructureMaterials.contains(upperType) || upperType == Material.BEACON)) {
-				break;
-			}
-			if (upperType == Material.BEACON) {
-				return (Beacon) upperBlock;
-			}
-			tiersLeft--;
-		}
-		return null;
-	}
-
-	public boolean checkNetheriteValidity(Block block) {
-		if (!(block.getType() == Material.BEACON)) {
-			return false;
-		}
-		Beacon beacon = (Beacon) block.getState();
-		if (beacon.getTier() == 0) {
+		Block netheriteBlock = beacon.getBlock().getRelative(0, (tier * -1) - 1, 0); // Subtract tier
+		if (!(netheriteBlock.getType() == protectorMaterial)) {
 			return false;
 		}
 		return true;
+	}
+
+	public String serializeLocation(Location location) {
+		int x = location.getBlockX();
+		int y = location.getBlockY();
+		int z = location.getBlockZ();
+		return x + "@" + y + "@" + z;
+	}
+
+	public Location deserializeLocation(String string) {
+		String[] xyz = string.split("@");
+		int x = Integer.parseInt(xyz[0]);
+		int y = Integer.parseInt(xyz[1]);
+		int z = Integer.parseInt(xyz[2]);
+		return new Location(plugin.getServer().getWorlds().get(0), x, y, z);
 	}
 
 }

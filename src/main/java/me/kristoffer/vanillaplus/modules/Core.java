@@ -15,6 +15,9 @@ public class Core extends Module {
 		super("Core", plugin);
 		setDataFolder(""); // Set data folder to back to root
 		settings = getConfig("settings.yml");
+	}
+
+	public void afterModuleHook() {
 		ArrayList<Module> toRemove = new ArrayList<Module>();
 		for (Module module : plugin.getStandardModules()) {
 			if (!settings.contains("moduleToggles." + name)) {
@@ -29,7 +32,7 @@ public class Core extends Module {
 		}
 	}
 
-	public void afterModuleHook() {
+	public void onEnable() {
 		for (Module module : plugin.getLoadedModules()) {
 			if (module instanceof Core) {
 				return;

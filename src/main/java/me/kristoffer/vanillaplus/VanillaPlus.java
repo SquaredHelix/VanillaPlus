@@ -29,6 +29,9 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 				new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this), new Sleep(this));
 		core.afterModuleHook();
 		loadedModules = standardModules;
+		for (Module module : loadedModules) {
+			module.onEnable();
+		}
 	}
 
 	public void onDisable() {
