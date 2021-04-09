@@ -4,15 +4,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Beacon;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.kristoffer.vanillaplus.VanillaPlus;
@@ -55,12 +58,13 @@ public class BeaconModule extends Module {
 	public void beaconUpdaterTick() {
 		for (Block block : watchedBeacons) {
 			Beacon beacon = (Beacon) block.getState();
-			System.out.println(beacon.getTier() + " | " + validityCheck(beacon));
+			// System.out.println(beacon.getTier() + " | " + validityCheck(beacon));
 			if (beacon.getTier() > 0 && validityCheck(beacon)) {
-				beacon.getEntitiesInRange().forEach(entity -> {
-					Player player = (Player) entity;
-					player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("⚔"));
-				});
+				for (Player player : Bukkit.getOnlinePlayers()) {
+					if (inBeaconRange(player.getLocation())) {
+						player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("⚔"));
+					}
+				}
 			}
 		}
 	}
@@ -83,6 +87,40 @@ public class BeaconModule extends Module {
 		Beacon beacon = (Beacon) event.getBlock().getState();
 		updateStoredBeacon(beacon, false);
 		watchedBeacons.remove(beacon.getBlock());
+	}
+
+	@EventHandler
+	public void onEntitySpawn(EntitySpawnEvent event) {
+		if (!(event.getEntity() instanceof Monster)) {
+			return;
+		}
+		// System.out.println("Entity spawned");
+		if (inBeaconRange(event.getLocation())) {
+			// System.out.println("Entity in range");
+			event.setCancelled(true);
+		} else {
+			// System.out.println("Entity not in range");
+		}
+	}
+
+	public boolean inBeaconRange(Location location) {
+		for (Block block : watchedBeacons) {
+			Beacon beacon = (Beacon) block.getState();
+			if (beacon.getTier() < 1) {
+				continue;
+			}
+			// System.out.println(location.distance(block.getLocation()));
+			// System.out.println(getBeaconRange(beacon.getTier()));
+			if (location.distance(block.getLocation()) <= getBeaconRange(beacon.getTier())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public int getBeaconRange(int tier) {
+		int range = (tier * 10) + 10;
+		return range;
 	}
 
 	public void updateStoredBeacon(Beacon beacon, boolean add) {
@@ -113,7 +151,6 @@ public class BeaconModule extends Module {
 
 	// Method to check if the beacon is valid for monster protection
 	public boolean validityCheck(Beacon beacon) {
-		Location loc = beacon.getLocation();
 		int tier = beacon.getTier();
 		if (tier == 0) {
 			return false;

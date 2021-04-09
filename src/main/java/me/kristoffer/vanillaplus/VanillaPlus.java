@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import me.kristoffer.vanillaplus.modules.AnvilColor;
 import me.kristoffer.vanillaplus.modules.BeaconModule;
 import me.kristoffer.vanillaplus.modules.Core;
+import me.kristoffer.vanillaplus.modules.DragonElytra;
 import me.kristoffer.vanillaplus.modules.ItemFrameFix;
 import me.kristoffer.vanillaplus.modules.Module;
 import me.kristoffer.vanillaplus.modules.Nametag;
@@ -25,7 +26,7 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 	
 	public void onEnable() {
 		core = new Core(this);
-		standardModules = Arrays.asList(new Core(this), new AnvilColor(this), new BeaconModule(this), new ItemFrameFix(this), new Nametag(this),
+		standardModules = Arrays.asList(new Core(this), new DragonElytra(this), new AnvilColor(this), new BeaconModule(this), new ItemFrameFix(this), new Nametag(this),
 				new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this), new Sleep(this));
 		core.afterModuleHook();
 		loadedModules = standardModules;

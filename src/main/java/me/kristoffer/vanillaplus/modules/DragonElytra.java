@@ -15,11 +15,11 @@ import me.kristoffer.vanillaplus.VanillaPlus;
 public class DragonElytra extends Module {
 
 	private ArrayList<Player> rewardPlayers = new ArrayList<Player>();
-	
+
 	public DragonElytra(VanillaPlus plugin) {
 		super("DragonElytra", plugin);
 	}
-	
+
 	public void onEnable() {
 		registerListeners();
 	}
@@ -30,7 +30,9 @@ public class DragonElytra extends Module {
 			return;
 		}
 		if (event.getDamager().getType().equals(EntityType.PLAYER)) {
-			rewardPlayers.add((Player) event.getDamager());
+			Player damager = (Player) event.getDamager();
+			if (!rewardPlayers.contains(damager))
+				rewardPlayers.add(damager);
 		}
 	}
 
