@@ -8,30 +8,30 @@ var sleepTask
 	
 function PlayerBedEnterEvent(event) {
 	if (cooldown.includes(event.getPlayer())) {
-		event.setCancelled(true);
-		return;
+		event.setCancelled(true)
+		return
 	}
 	if (sleepTask != null) {
 		if (!sleepTask.isCancelled()) {
-			event.setCancelled(true);
-			return;
+			event.setCancelled(true)
+			return
 		}
 	}
-	var neededPlayers = Math.static.ceil(loader.getPlugin().getServer().getOnlinePlayers().size() / 5.0);
-	if (event.getBedEnterResult().equals(BedEnterResult.getBedEnterResult("OK"))) {
-		sleeping.push(event.getPlayer());
-		Bukkit.broadcastMessage(event.getPlayer().getName() + " is now sleeping " + ChatColor.getChatColor("YELLOW") + "("
-				+ sleeping.length + "/" + neededPlayers + ")");
+	var neededPlayers = Math.static.ceil(loader.getPlugin().getServer().getOnlinePlayers().size() / 5.0)
+	if (event.getBedEnterResult().equals(BedEnterResult.from("OK"))) {
+		sleeping.push(event.getPlayer())
+		Bukkit.broadcastMessage(event.getPlayer().getName() + " is now sleeping " + ChatColor.from("YELLOW") + "("
+				+ sleeping.length + "/" + neededPlayers + ")")
 	}
 	if (neededPlayers <= sleeping.length) {
 		if (isNight() || getMainworld().isThundering()) {
 			sleepTask = loader.scheduleDelayed(101, () => {
-				event.getPlayer().getWorld().setFullTime(24000);
+				event.getPlayer().getWorld().setFullTime(24000)
 				if (getMainworld().isThundering()) {
-					getMainworld().setWeatherDuration(1);
+					getMainworld().setWeatherDuration(1)
 				}
 				sleeping = []
-				sleepTask = null;
+				sleepTask = null
 			})
 		}
 	}
@@ -40,8 +40,8 @@ function PlayerBedEnterEvent(event) {
 function PlayerBedLeaveEvent (event) {
 	sleeping = sleeping.filter(player => player !== event.getPlayer())
 	if (isNight() || getMainworld().isThundering()) {
-		Bukkit.broadcastMessage(event.getPlayer().getName() + " has stopped sleeping");
-		cooldown.add(event.getPlayer());
+		Bukkit.broadcastMessage(event.getPlayer().getName() + " has stopped sleeping")
+		cooldown.add(event.getPlayer())
 		loader.scheduleDelayed(20*5, () => {
 			cooldown = cooldown.filter(player => player !== event.getPlayer())
 		})

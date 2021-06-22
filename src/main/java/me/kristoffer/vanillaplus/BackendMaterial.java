@@ -4,7 +4,7 @@ import org.bukkit.Material;
 
 public class BackendMaterial {
 
-	public Material getMaterial(String name) {
+	public Material from(String name) {
 		return Material.getMaterial(name);
 	}
 	

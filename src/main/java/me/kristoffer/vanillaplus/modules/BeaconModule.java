@@ -111,8 +111,10 @@ public class BeaconModule extends Module {
 			}
 			// System.out.println(location.distance(block.getLocation()));
 			// System.out.println(getBeaconRange(beacon.getTier()));
-			if (location.distance(block.getLocation()) <= getBeaconRange(beacon.getTier())) {
-				return true;
+			if (location.getWorld().equals(block.getWorld())) {
+				if (location.distance(block.getLocation()) <= getBeaconRange(beacon.getTier())) {
+					return true;
+				}
 			}
 		}
 		return false;

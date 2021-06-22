@@ -13,6 +13,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.graalvm.polyglot.Context;
@@ -45,6 +46,9 @@ public class ModuleLoader {
 		bindings.putMember("Math", Math.class);
 		bindings.putMember("BedEnterResult", new BackendBedEnterResult());
 		bindings.putMember("ChatColor", new BackendChatColor());
+		bindings.putMember("AnvilInventory", AnvilInventory.class);
+		bindings.putMember("InventoryType", new BackendInventoryType());
+		bindings.putMember("EntityType", new BackendEntityType());
 		bindings.putMember("loader", this);
 		FileReader fileReader = null;
 		for (String fileName : plugin.getDataFolder().list()) {
