@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,19 +50,23 @@ public class GlobalEventListener implements Listener {
 			"ChunkUnloadEvent", "ChunkLoadEvent" };
 
 	public void iGetCalledForEveryEvent(Event event) {
-		if (Arrays.stream(ignored).anyMatch(ignored -> event.getEventName().equals(ignored))) {
-			return;
-		}
-		// plugin.getLogger().info(event.getEventName() + " was called!");
-		ArrayList<Runnable<Event>> functionList = functions.get(event.getEventName());
-		if (functionList == null) {
-			return;
-		}
-		if (functionList.size() < 1) {
-			return;
-		}
-		for (Runnable<Event> runnable : functionList) {
-			runnable.run(event);
+		try {
+			if (Arrays.stream(ignored).anyMatch(ignored -> event.getEventName().equals(ignored))) {
+				return;
+			}
+			// plugin.getLogger().info(event.getEventName() + " was called!");
+			ArrayList<Runnable<Event>> functionList = functions.get(event.getEventName());
+			if (functionList == null) {
+				return;
+			}
+			if (functionList.size() < 1) {
+				return;
+			}
+			for (Runnable<Event> runnable : functionList) {
+				runnable.run(event);
+			}
+		} catch (ConcurrentModificationException ex) {
+			System.err.println("!!! You cannot register listeners at runtime !!!");
 		}
 	}
 

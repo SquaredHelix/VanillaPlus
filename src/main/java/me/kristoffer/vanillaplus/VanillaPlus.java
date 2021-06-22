@@ -13,22 +13,21 @@ import me.kristoffer.vanillaplus.modules.DragonElytra;
 import me.kristoffer.vanillaplus.modules.ItemFrameFix;
 import me.kristoffer.vanillaplus.modules.Module;
 import me.kristoffer.vanillaplus.modules.Nametag;
-import me.kristoffer.vanillaplus.modules.NoCropTrampling;
 import me.kristoffer.vanillaplus.modules.NoExplosions;
 import me.kristoffer.vanillaplus.modules.NoStrip;
-import me.kristoffer.vanillaplus.modules.Sleep;
 
 public class VanillaPlus extends JavaPlugin implements Listener {
 
 	private Core core;
 	private List<Module> standardModules;
 	private List<Module> loadedModules;
-	
+
 	public void onEnable() {
 		new ModuleLoader(this);
 		core = new Core(this);
-		standardModules = Arrays.asList(new Core(this), new DragonElytra(this), new AnvilColor(this), new BeaconModule(this), new ItemFrameFix(this), new Nametag(this),
-				new NoCropTrampling(this), new NoExplosions(this), new NoStrip(this), new Sleep(this));
+		standardModules = Arrays.asList(new Core(this), new DragonElytra(this), new AnvilColor(this),
+				new BeaconModule(this), new ItemFrameFix(this), new Nametag(this), new NoExplosions(this),
+				new NoStrip(this));
 		core.afterModuleHook();
 		loadedModules = standardModules;
 		for (Module module : loadedModules) {
@@ -45,11 +44,11 @@ public class VanillaPlus extends JavaPlugin implements Listener {
 	public Core getCore() {
 		return core;
 	}
-	
+
 	public List<Module> getStandardModules() {
 		return standardModules;
 	}
-	
+
 	public List<Module> getLoadedModules() {
 		return loadedModules;
 	}
