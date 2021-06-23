@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -368,7 +369,7 @@ public class ModuleLoader {
 				@Override
 				public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 					Player player = (Player) sender;
-					function.executeVoid(player);
+					function.executeVoid(player, args);
 					return true;
 				}
 
@@ -392,6 +393,18 @@ public class ModuleLoader {
 				bindings.removeMember("event");
 			});
 		}
+	}
+
+	public void exec(String exec) {
+		polyglot.eval(Source.create("js", exec));
+	}
+	
+	public void exec(String exec, Map<String, Object> map) {
+		Value bindings = polyglot.getBindings("js");
+		for (String key : map.keySet()) {
+			bindings.putMember(key, map.get(key));
+		}
+		polyglot.eval(Source.create("js", exec));
 	}
 
 	public BukkitTask scheduleDelayed(int ticks, Value function) {
