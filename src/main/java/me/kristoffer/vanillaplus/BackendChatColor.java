@@ -1,6 +1,6 @@
 package me.kristoffer.vanillaplus;
 
-import org.bukkit.ChatColor;
+import me.kristoffer.vanillaplus.backend.org.bukkit.ChatColor;
 
 public class BackendChatColor {
 	

@@ -1,6 +1,6 @@
 package me.kristoffer.vanillaplus;
 
-import org.bukkit.entity.EntityType;
+import me.kristoffer.vanillaplus.backend.org.bukkit.entity.EntityType;
 
 public class BackendEntityType {
 	

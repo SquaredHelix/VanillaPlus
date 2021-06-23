@@ -1,7 +1,8 @@
 package me.kristoffer.vanillaplus;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import me.kristoffer.vanillaplus.backend.org.bukkit.Material;
 
 public class BackendItemStack extends ItemStack {
 	
