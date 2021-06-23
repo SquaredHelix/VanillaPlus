@@ -174,15 +174,8 @@ public class ModuleLoader {
 		Value bindings = polyglot.getBindings("js");
 		bindings.putMember("Bukkit", plugin.getServer());
 		bindings.putMember("Runnable", Runnable.class);
-		bindings.putMember("ItemStack", BackendItemStack.class);
-		bindings.putMember("Material", new BackendMaterial());
-		bindings.putMember("Action", new BackendAction());
 		bindings.putMember("Math", Math.class);
-		bindings.putMember("BedEnterResult", new BackendBedEnterResult());
-		bindings.putMember("ChatColor", new BackendChatColor());
 		bindings.putMember("AnvilInventory", AnvilInventory.class);
-		bindings.putMember("InventoryType", new BackendInventoryType());
-		bindings.putMember("EntityType", new BackendEntityType());
 		bindings.putMember("loader", this);
 
 		// AUTOMATICALLY GENERATED BINDINGS
