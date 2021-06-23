@@ -2,11 +2,13 @@ package me.kristoffer.vanillaplus.modules;
 
 import java.util.ArrayList;
 
+import org.bukkit.Material;
 import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Container;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,8 +17,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.kristoffer.vanillaplus.VanillaPlus;
-import me.kristoffer.vanillaplus.backend.org.bukkit.Material;
-import me.kristoffer.vanillaplus.backend.org.bukkit.entity.EntityType;
 
 public class ItemFrameFix extends Module {
 
