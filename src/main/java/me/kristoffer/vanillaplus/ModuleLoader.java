@@ -6,9 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -158,9 +159,9 @@ import me.kristoffer.vanillaplus.backend.org.bukkit.scoreboard.Team;
 
 public class ModuleLoader {
 
-	private Context polyglot;
 	private GlobalEventListener globalEventListener;
 	private VanillaPlus plugin;
+	private Context currentContext;
 
 	private boolean finishedLoading = false;
 
@@ -169,7 +170,148 @@ public class ModuleLoader {
 		globalEventListener = new GlobalEventListener();
 		globalEventListener.doStuff(plugin);
 
-		polyglot = Context.newBuilder("js").allowHostClassLookup(s -> true).allowHostAccess(HostAccess.ALL)
+		try {
+			Files.walk(Paths.get(plugin.getDataFolder().getAbsolutePath())).filter(Files::isRegularFile)
+					.forEach(path -> {
+						Context context = newContext();
+						currentContext = context;
+						Value bindings = context.getBindings("js");
+
+						FileReader fileReader = null;
+						String localPath = path.toString()
+								.replace(plugin.getDataFolder().getAbsolutePath().toString() + "\\", "");
+						String fileName = path.toString();
+
+						if (!(fileName.endsWith(".js") || fileName.endsWith(".mjs"))) {
+							return;
+						}
+						bindings.putMember("this", localPath);
+						File file = new File(plugin.getDataFolder().getAbsolutePath() + "/" + localPath);
+						if (file.isDirectory())
+							return;
+						try {
+							fileReader = new FileReader(file.getAbsolutePath());
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
+						BufferedReader bufferedReader = new BufferedReader(fileReader);
+						ArrayList<String> script = new ArrayList<String>();
+						try {
+							while (bufferedReader.ready()) {
+								String line = bufferedReader.readLine();
+								if (!line.endsWith(";")) {
+									// line += ';'; --- probably not needed
+								}
+								script.add(line);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						String strScript = "";
+						for (String line : script) {
+							strScript += line + "\n";
+						}
+						try {
+							context.eval(Source.newBuilder("js", file).build());
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						Bukkit.getConsoleSender().sendMessage(
+								"Loaded " + org.bukkit.ChatColor.GREEN + context.getBindings("js").getMember("this"));
+						try {
+							fileReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+					});
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+		finishedLoading = true;
+	}
+
+	public void onCommand(String command, Value function) {
+		addCommand(command, function);
+	}
+
+	public void addCommand(String command, Value function) {
+		try {
+			Field bukkitCmdMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+			bukkitCmdMap.setAccessible(true);
+			final CommandMap commandMap = (CommandMap) bukkitCmdMap.get(Bukkit.getServer());
+			commandMap.register("vanillaplus", new Command(command) {
+
+				@Override
+				public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+					Player player = (Player) sender;
+					function.executeVoid(player, args);
+					return true;
+				}
+
+			});
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void generateModule(String[] listeners) {
+		if (finishedLoading) {
+			System.err.println("!!! You cannot generate modules at runtime !!!");
+			return;
+		}
+		for (String listener : listeners) {
+			globalEventListener.registerFunction(listener, event -> {
+				Value bindings = currentContext.getBindings("js");
+				bindings.putMember("event", event);
+				currentContext.eval(Source.create("js", listener + "(event)"));
+				bindings.removeMember("event");
+			});
+		}
+	}
+
+	public void exec(String exec) {
+		currentContext.eval(Source.create("js", exec));
+	}
+
+	public void exec(String exec, Map<String, Object> map) {
+		Value bindings = currentContext.getBindings("js");
+		for (String key : map.keySet()) {
+			bindings.putMember(key, map.get(key));
+		}
+		currentContext.eval(Source.create("js", exec));
+	}
+
+	public BukkitTask scheduleDelayed(int ticks, Value function) {
+		BukkitTask task = new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				function.executeVoid();
+			}
+
+		}.runTaskLater(plugin, ticks);
+		return task;
+	}
+
+	public BukkitTask scheduleRepeating(int delay, int period, Value function) {
+		BukkitTask task = new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				function.executeVoid();
+			}
+
+		}.runTaskTimer(plugin, delay, period);
+		return task;
+	}
+
+	public VanillaPlus getPlugin() {
+		return plugin;
+	}
+
+	public Context newContext() {
+		Context polyglot = Context.newBuilder("js").allowHostClassLookup(s -> true).allowHostAccess(HostAccess.ALL)
 				.allowIO(true).build();
 
 		Value bindings = polyglot.getBindings("js");
@@ -178,6 +320,7 @@ public class ModuleLoader {
 		bindings.putMember("Math", Math.class);
 		bindings.putMember("AnvilInventory", AnvilInventory.class);
 		bindings.putMember("loader", this);
+		bindings.putMember("import", ImportObj.class);
 
 		// AUTOMATICALLY GENERATED BINDINGS
 		bindings.putMember("Art", new Art());
@@ -314,125 +457,15 @@ public class ModuleLoader {
 		bindings.putMember("World", new World());
 		bindings.putMember("WorldType", new WorldType());
 
-		FileReader fileReader = null;
-		for (String fileName : plugin.getDataFolder().list()) {
-			if (!fileName.endsWith(".js")) {
-				continue;
-			}
-			bindings.putMember("this", fileName);
-			File file = new File(plugin.getDataFolder().getAbsolutePath() + "/" + fileName);
-			if (file.isDirectory())
-				continue;
-			try {
-				fileReader = new FileReader(file.getAbsolutePath());
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
-			}
-			BufferedReader bufferedReader = new BufferedReader(fileReader);
-			ArrayList<String> script = new ArrayList<String>();
-			try {
-				while (bufferedReader.ready()) {
-					String line = bufferedReader.readLine();
-					if (!line.endsWith(";")) {
-						// line += ';'; --- probably not needed
-					}
-					script.add(line);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			String strScript = "";
-			for (String line : script) {
-				strScript += line + "\n";
-			}
-			polyglot.eval(Source.create("js", strScript));
-			try {
-				fileReader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		return polyglot;
+	}
+
+	public class ImportObj {
+
+		public ImportObj(String localPath) {
+			System.out.println(localPath);
 		}
-		finishedLoading = true;
-	}
 
-	public void onCommand(String command, Value function) {
-		addCommand(command, function);
-	}
-
-	public void addCommand(String command, Value function) {
-		try {
-			Field bukkitCmdMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-			bukkitCmdMap.setAccessible(true);
-			final CommandMap commandMap = (CommandMap) bukkitCmdMap.get(Bukkit.getServer());
-			commandMap.register("vanillaplus", new Command(command) {
-
-				@Override
-				public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-					Player player = (Player) sender;
-					function.executeVoid(player, args);
-					return true;
-				}
-
-			});
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void generateModule(String[] listeners) {
-		if (finishedLoading) {
-			System.err.println("!!! You cannot generate modules at runtime !!!");
-			return;
-		}
-		System.out.println(polyglot.getBindings("js").getMember("this"));
-		for (String listener : listeners) {
-			globalEventListener.registerFunction(listener, event -> {
-				Value bindings = polyglot.getBindings("js");
-				bindings.putMember("event", event);
-				polyglot.eval(Source.create("js", listener + "(event)"));
-				bindings.removeMember("event");
-			});
-		}
-	}
-
-	public void exec(String exec) {
-		polyglot.eval(Source.create("js", exec));
-	}
-	
-	public void exec(String exec, Map<String, Object> map) {
-		Value bindings = polyglot.getBindings("js");
-		for (String key : map.keySet()) {
-			bindings.putMember(key, map.get(key));
-		}
-		polyglot.eval(Source.create("js", exec));
-	}
-
-	public BukkitTask scheduleDelayed(int ticks, Value function) {
-		BukkitTask task = new BukkitRunnable() {
-
-			@Override
-			public void run() {
-				function.executeVoid();
-			}
-
-		}.runTaskLater(plugin, ticks);
-		return task;
-	}
-
-	public BukkitTask scheduleRepeating(int delay, int period, Value function) {
-		BukkitTask task = new BukkitRunnable() {
-
-			@Override
-			public void run() {
-				function.executeVoid();
-			}
-
-		}.runTaskTimer(plugin, delay, period);
-		return task;
-	}
-
-	public VanillaPlus getPlugin() {
-		return plugin;
 	}
 
 }
