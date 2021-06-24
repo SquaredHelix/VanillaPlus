@@ -6,14 +6,23 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -171,65 +180,128 @@ public class ModuleLoader {
 		globalEventListener.doStuff(plugin);
 
 		try {
+			final WatchService createWatcher = FileSystems.getDefault().newWatchService();
+			final WatchService deleteWatcher = FileSystems.getDefault().newWatchService();
+			final WatchService modifyWatcher = FileSystems.getDefault().newWatchService();
+
+			WatchKey create = plugin.getDataFolder().toPath().register(createWatcher,
+					StandardWatchEventKinds.ENTRY_CREATE);
+			WatchKey delete = plugin.getDataFolder().toPath().register(deleteWatcher,
+					StandardWatchEventKinds.ENTRY_DELETE);
+			WatchKey modify = plugin.getDataFolder().toPath().register(modifyWatcher,
+					StandardWatchEventKinds.ENTRY_MODIFY);
+
+			new BukkitRunnable() {
+
+				@Override
+				public void run() {
+					create.pollEvents().forEach(event -> {
+						loadFile(event.context().toString(), false);
+					});
+					delete.pollEvents().forEach(event -> {
+						unloadFile(event.context().toString(), false);
+					});
+					modify.pollEvents().forEach(event -> {
+						reloadFile(event.context().toString(), false);
+					});
+				}
+
+			}.runTaskTimer(plugin, 4L, 20L);
+
 			Files.walk(Paths.get(plugin.getDataFolder().getAbsolutePath())).filter(Files::isRegularFile)
 					.forEach(path -> {
-						Context context = newContext();
-						currentContext = context;
-						Value bindings = context.getBindings("js");
-
-						FileReader fileReader = null;
-						String localPath = path.toString()
-								.replace(plugin.getDataFolder().getAbsolutePath().toString() + "\\", "");
-						String fileName = path.toString();
-
-						if (!(fileName.endsWith(".js") || fileName.endsWith(".mjs"))) {
-							return;
-						}
-						bindings.putMember("this", localPath);
-						File file = new File(plugin.getDataFolder().getAbsolutePath() + "/" + localPath);
-						if (file.isDirectory())
-							return;
-						try {
-							fileReader = new FileReader(file.getAbsolutePath());
-						} catch (FileNotFoundException e1) {
-							e1.printStackTrace();
-						}
-						BufferedReader bufferedReader = new BufferedReader(fileReader);
-						ArrayList<String> script = new ArrayList<String>();
-						try {
-							while (bufferedReader.ready()) {
-								String line = bufferedReader.readLine();
-								if (!line.endsWith(";")) {
-									// line += ';'; --- probably not needed
-								}
-								script.add(line);
-							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-						String strScript = "";
-						for (String line : script) {
-							strScript += line + "\n";
-						}
-						try {
-							context.eval(Source.newBuilder("js", file).build());
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-						Bukkit.getConsoleSender().sendMessage(
-								"Loaded " + org.bukkit.ChatColor.GREEN + context.getBindings("js").getMember("this"));
-						try {
-							fileReader.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-
+						loadFile(path.toString(), false);
 					});
 		} catch (IOException e2) {
 			e2.printStackTrace();
 		}
+	}
+
+	public HashMap<String, Context> contextMap = new HashMap<String, Context>();
+
+	public void loadFile(String path, boolean silent) {
+		finishedLoading = false;
+		Context context = newContext();
+		currentContext = context;
+		Value bindings = context.getBindings("js");
+
+		FileReader fileReader = null;
+		String localPath = path.replace(plugin.getDataFolder().getAbsolutePath().toString() + "\\", "");
+		contextMap.put(localPath, context);
+		String fileName = path;
+
+		if (!(fileName.endsWith(".js") || fileName.endsWith(".mjs"))) {
+			return;
+		}
+		bindings.putMember("this", localPath);
+		File file = new File(plugin.getDataFolder().getAbsolutePath() + "/" + localPath);
+		if (file.isDirectory())
+			return;
+		try {
+			fileReader = new FileReader(file.getAbsolutePath());
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		ArrayList<String> script = new ArrayList<String>();
+		try {
+			while (bufferedReader.ready()) {
+				String line = bufferedReader.readLine();
+				if (!line.endsWith(";")) {
+					// line += ';'; --- probably not needed
+				}
+				script.add(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// String strScript = "";
+		// for (String line : script) {
+		// strScript += line + "\n";
+		// }
+		if (!silent) {
+			Bukkit.getConsoleSender()
+					.sendMessage("Loading " + org.bukkit.ChatColor.GREEN + context.getBindings("js").getMember("this"));
+		}
+		try {
+			context.eval(Source.newBuilder("js", file).build());
+			fileReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		finishedLoading = true;
 	}
+
+	public void unloadFile(String path, boolean silent) {
+		if (contextMap.containsKey(path)) {
+			Context context = contextMap.get(path);
+			if (!silent) {
+				Bukkit.getConsoleSender().sendMessage(
+						"Unloading " + org.bukkit.ChatColor.GREEN + context.getBindings("js").getMember("this"));
+			}
+			if (cmdMap.containsKey(context)) {
+				ArrayList<Command> command = cmdMap.get(context);
+				command.forEach(cmd -> {
+					removeCommand(context, cmd);
+				});
+
+			}
+			context.close();
+			contextMap.remove(path);
+		}
+	}
+
+	public void reloadFile(String path, boolean silent) {
+		Context context = contextMap.get(path);
+		if (!silent) {
+			Bukkit.getConsoleSender().sendMessage(
+					"Reloading " + org.bukkit.ChatColor.GREEN + context.getBindings("js").getMember("this"));
+		}
+		unloadFile(path, true);
+		loadFile(path, true);
+	}
+
+	public HashMap<Context, ArrayList<Command>> cmdMap = new HashMap<Context, ArrayList<Command>>();
 
 	public void onCommand(String command, Value function) {
 		addCommand(command, function);
@@ -240,7 +312,7 @@ public class ModuleLoader {
 			Field bukkitCmdMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 			bukkitCmdMap.setAccessible(true);
 			final CommandMap commandMap = (CommandMap) bukkitCmdMap.get(Bukkit.getServer());
-			commandMap.register("vanillaplus", new Command(command) {
+			Command cmd = new Command(command) {
 
 				@Override
 				public boolean execute(CommandSender sender, String commandLabel, String[] args) {
@@ -249,8 +321,58 @@ public class ModuleLoader {
 					return true;
 				}
 
-			});
+			};
+			commandMap.register("vanillaplus", cmd);
+			if (cmdMap.containsKey(currentContext)) {
+				cmdMap.get(currentContext).add(cmd);
+			} else {
+				ArrayList<Command> cmdArray = new ArrayList<Command>();
+				cmdArray.add(cmd);
+				cmdMap.put(currentContext, cmdArray);
+			}
+			syncCommands();
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void removeCommand(Context context, Command command) {
+		try {
+			unregisterCommand(command);
+			cmdMap.remove(context);
+			syncCommands();
+		} catch (SecurityException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean unregisterCommand(Command command) {
+		Field commandMap;
+		Field knownCommands;
+		try {
+			commandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+			commandMap.setAccessible(true);
+			knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+			knownCommands.setAccessible(true);
+			((Map<String, Command>) knownCommands.get((SimpleCommandMap) commandMap.get(Bukkit.getServer())))
+					.remove(command.getName());
+			command.unregister((CommandMap) commandMap.get(Bukkit.getServer()));
+			return true;
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void syncCommands() {
+		Method m;
+		try {
+			m = Bukkit.getServer().getClass().getDeclaredMethod("syncCommands");
+			m.setAccessible(true);
+			m.invoke(Bukkit.getServer());
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
 			e.printStackTrace();
 		}
 	}
@@ -261,10 +383,11 @@ public class ModuleLoader {
 			return;
 		}
 		for (String listener : listeners) {
+			Context context = Context.getCurrent();
 			globalEventListener.registerFunction(listener, event -> {
-				Value bindings = currentContext.getBindings("js");
+				Value bindings = context.getBindings("js");
 				bindings.putMember("event", event);
-				currentContext.eval(Source.create("js", listener + "(event)"));
+				context.eval(Source.create("js", listener + "(event)"));
 				bindings.removeMember("event");
 			});
 		}

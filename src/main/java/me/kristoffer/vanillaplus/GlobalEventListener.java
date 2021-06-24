@@ -38,7 +38,8 @@ public class GlobalEventListener implements Listener {
 						.anyMatch(field -> field.getType().getName().endsWith("HandlerList")))
 				.collect(Collectors.toSet());
 		plugin.getLogger().info("Found " + eventClasses.size() + " available events!");
-		plugin.getLogger().info(eventClasses.stream().map(Class::getName).collect(Collectors.joining(", ")));
+		// plugin.getLogger().info(eventClasses.stream().map(Class::getName).collect(Collectors.joining(",
+		// ")));
 
 		// register events
 		EventExecutor eventExecutor = (listener, event) -> iGetCalledForEveryEvent(event);
@@ -46,8 +47,12 @@ public class GlobalEventListener implements Listener {
 				EventPriority.MONITOR, eventExecutor, plugin));
 	}
 
-	private final String[] ignored = { "VehicleBlockCollisionEvent", "EntityAirChangeEvent", "VehicleUpdateEvent",
-			"ChunkUnloadEvent", "ChunkLoadEvent" };
+	private final String[] ignored = {};
+	/*
+	 * private final String[] ignored = { "VehicleBlockCollisionEvent",
+	 * "EntityAirChangeEvent", "VehicleUpdateEvent", "ChunkUnloadEvent",
+	 * "ChunkLoadEvent" };
+	 */
 
 	public void iGetCalledForEveryEvent(Event event) {
 		try {
