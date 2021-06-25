@@ -17,6 +17,7 @@ import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -286,7 +287,7 @@ public class ModuleLoader {
 				});
 
 			}
-			context.close();
+			globalEventListener.unregisterFunctions(context);
 			contextMap.remove(path);
 		}
 	}
@@ -299,6 +300,13 @@ public class ModuleLoader {
 		}
 		unloadFile(path, true);
 		loadFile(path, true);
+		/*
+		 * Sync 5 more times for good measure (avoid it breaking for people with open
+		 * chat)
+		 */
+		IntStream.range(0, 5).forEach(i -> {
+			syncCommands();
+		});
 	}
 
 	public HashMap<Context, ArrayList<Command>> cmdMap = new HashMap<Context, ArrayList<Command>>();
@@ -384,13 +392,20 @@ public class ModuleLoader {
 		}
 		for (String listener : listeners) {
 			Context context = Context.getCurrent();
-			globalEventListener.registerFunction(listener, event -> {
+			globalEventListener.registerFunction(context, listener, event -> {
 				Value bindings = context.getBindings("js");
 				bindings.putMember("event", event);
 				context.eval(Source.create("js", listener + "(event)"));
 				bindings.removeMember("event");
 			});
 		}
+	}
+
+	public void onEvent(String eventName, Value function) {
+		Context context = Context.getCurrent();
+		globalEventListener.registerFunction(context, eventName, event -> {
+			function.executeVoid(event);
+		});
 	}
 
 	public void exec(String exec) {
@@ -441,9 +456,9 @@ public class ModuleLoader {
 		bindings.putMember("Bukkit", plugin.getServer());
 		bindings.putMember("Runnable", Runnable.class);
 		bindings.putMember("Math", Math.class);
+		bindings.putMember("Util", new Util());
 		bindings.putMember("AnvilInventory", AnvilInventory.class);
 		bindings.putMember("loader", this);
-		bindings.putMember("import", ImportObj.class);
 
 		// AUTOMATICALLY GENERATED BINDINGS
 		bindings.putMember("Art", new Art());
@@ -581,14 +596,6 @@ public class ModuleLoader {
 		bindings.putMember("WorldType", new WorldType());
 
 		return polyglot;
-	}
-
-	public class ImportObj {
-
-		public ImportObj(String localPath) {
-			System.out.println(localPath);
-		}
-
 	}
 
 }

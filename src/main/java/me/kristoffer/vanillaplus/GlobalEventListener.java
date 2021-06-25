@@ -24,11 +24,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.graalvm.polyglot.Context;
 import org.reflections.Reflections;
 
 public class GlobalEventListener implements Listener {
 
-	private HashMap<String, ArrayList<Runnable<Event>>> functions = new HashMap<String, ArrayList<Runnable<Event>>>();
+	public HashMap<String, EventFunction> functionMap = new HashMap<String, EventFunction>();
 
 	public void doStuff(Plugin plugin) {
 		// search event classes
@@ -60,29 +61,34 @@ public class GlobalEventListener implements Listener {
 				return;
 			}
 			// plugin.getLogger().info(event.getEventName() + " was called!");
-			ArrayList<Runnable<Event>> functionList = functions.get(event.getEventName());
-			if (functionList == null) {
+			if (!functionMap.containsKey(event.getEventName())) {
 				return;
 			}
-			if (functionList.size() < 1) {
-				return;
-			}
-			for (Runnable<Event> runnable : functionList) {
-				runnable.run(event);
+			EventFunction functions = functionMap.get(event.getEventName());
+			for (ArrayList<Runnable<Event>> runnableContext : functions.runnableMap.values()) {
+				for (Runnable<Event> runnable : runnableContext) {
+					runnable.run(event);
+				}
 			}
 		} catch (ConcurrentModificationException ex) {
 			System.err.println("!!! You cannot register listeners at runtime !!!");
 		}
 	}
 
-	public void registerFunction(String listenerName, Runnable<Event> runnable) {
-		if (functions.containsKey(listenerName)) {
-			functions.get(listenerName).add(runnable); // maybe todo
+	public void registerFunction(Context context, String listenerName, Runnable<Event> runnable) {
+		if (functionMap.containsKey(listenerName)) {
+			functionMap.get(listenerName).addFunction(context, runnable); // maybe todo
 		} else {
-			ArrayList<Runnable<Event>> functionList = new ArrayList<Runnable<Event>>();
-			functionList.add(runnable);
-			functions.put(listenerName, functionList);
+			EventFunction eventFunction = new EventFunction();
+			eventFunction.addFunction(context, runnable);
+			functionMap.put(listenerName, eventFunction);
 		}
+	}
+
+	public void unregisterFunctions(Context context) {
+		functionMap.values().forEach(eventFunction -> {
+			eventFunction.removeFunctions(context);
+		});
 	}
 
 }
